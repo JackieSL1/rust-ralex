@@ -4,32 +4,33 @@ enum Token {
     CloseCurly,
     Equals,
     Comma,
+    Projection,
+    Selection,
+    Join,
+    Union,
+    Intersection,
+    Subtraction,
     Word(String),
     String(String),
     Number(String),
 }
-
-// impl std::fmt::Display for Token {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         match self {
-//             Token::Word(s) => write!(f, "{}", s),
-//             _ => write!(f, "TEST"),
-//         }
-//     }
-// }
-
 
 fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut chars = chars.peekable();
     
     while let Some(c) = chars.next() {
-        println!("{:?}", c);
         match c {
             '{' => tokens.push(Token::OpenCurly),
             '}' => tokens.push(Token::CloseCurly),
             '=' => tokens.push(Token::Equals),
             ',' => tokens.push(Token::Comma),
+            'π' => tokens.push(Token::Projection),
+            'σ' => tokens.push(Token::Selection),
+            '⋈' => tokens.push(Token::Join),
+            '∩' => tokens.push(Token::Intersection),
+            '∪' => tokens.push(Token::Union),
+            '-' => tokens.push(Token::Subtraction),
             '"' => {
                 let mut word: String = "".to_string();
 
@@ -77,5 +78,8 @@ fn main() {
     }
     "#;
 
-    println!("{:?}", get_tokens(test_string.chars()));
+    let tokens: Vec<Token> = get_tokens(test_string.chars());
+
+    println!("Input String:\n{}", test_string);
+    println!("{:?}", tokens);
 }
