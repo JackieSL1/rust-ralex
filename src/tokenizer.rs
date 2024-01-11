@@ -34,7 +34,7 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
             '"' => {
                 let mut word: String = "".to_string();
 
-                while let Some(c) = chars.next() { // TODO: Possible dangerous unwrap
+                while let Some(c) = chars.next() {
                     if c == '"' {break};
                     word.push(c);
                 }
@@ -46,7 +46,8 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
                 let mut word: String = "".to_string();
                 word.push(c);
 
-                while chars.peek().unwrap().is_alphabetic() {
+                while let Some(c) = chars.peek() {
+                    if !c.is_alphanumeric() {break};
                     word.push(chars.next().unwrap());
                 }
 
@@ -56,7 +57,8 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
                 let mut word: String = "".to_string();
                 word.push(c);
 
-                while chars.peek().unwrap().is_numeric() {
+                while let Some(c) = chars.peek() {
+                    if !c.is_numeric() {break};
                     word.push(chars.next().unwrap());
                 }
 
