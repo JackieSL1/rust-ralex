@@ -10,7 +10,7 @@ pub enum Token {
     Union,
     Intersection,
     Subtraction,
-    Word(String),
+    Symbol(String),
     String(String),
     Number(String),
 }
@@ -25,11 +25,6 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
             '}' => tokens.push(Token::CloseCurly),
             '=' => tokens.push(Token::Equals),
             ',' => tokens.push(Token::Comma),
-            'π' => tokens.push(Token::Projection),
-            'σ' => tokens.push(Token::Selection),
-            '⋈' => tokens.push(Token::Join),
-            '∩' => tokens.push(Token::Intersection),
-            '∪' => tokens.push(Token::Union),
             '-' => tokens.push(Token::Subtraction),
             '"' => {
                 let mut word: String = "".to_string();
@@ -51,7 +46,14 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
                     word.push(chars.next().unwrap());
                 }
 
-                tokens.push(Token::Word(word));
+                match word.as_str() {
+                    "project" => tokens.push(Token::Projection),
+                    "select" => tokens.push(Token::Selection),
+                    "join" => tokens.push(Token::Join),
+                    "intersect" => tokens.push(Token::Intersection),
+                    "union" => tokens.push(Token::Union),
+                    _ => tokens.push(Token::Symbol(word)),
+                }
             },
             c if c.is_numeric() => {
                 let mut word: String = "".to_string();
