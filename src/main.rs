@@ -1,4 +1,8 @@
 mod tokenizer;
+mod parser;
+
+use std::io::{self, Write};
+use crate::parser::Expr;
 
 fn main() {
     // let test_string = r#"
@@ -8,10 +12,26 @@ fn main() {
     //     "3", "Charlie", 21, "Mathematics"
     // }
     // "#;
-    let test_string = "select id=a Students";
+    // let test_string = "select id=a Students";
 
-    let tokens: Vec<tokenizer::Token> = tokenizer::get_tokens(test_string.chars());
+    // let tokens: Vec<tokenizer::Token> = tokenizer::get_tokens(test_string.chars());
 
-    println!("Input String:\n{}", test_string);
-    println!("{:?}", tokens);
+    // println!("Input String:\n{}", test_string);
+    // println!("{:?}", tokens);
+    
+    loop {
+        print!("> ");
+        io::stdout().flush().expect("error: unable to flush stdout");
+
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).expect("error: unable to read user input");
+        let mut tokens: Vec<tokenizer::Token> = tokenizer::get_tokens(input.chars());
+        if tokens[0] == tokenizer::Token::EOF {
+            break;
+        }
+        tokens.pop(); // Remove EOF
+
+        let tree = parser::parse(&tokens);
+        println!("Tokens: {tokens:?}");
+    }
 }

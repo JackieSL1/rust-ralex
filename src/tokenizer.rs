@@ -1,18 +1,27 @@
-#[derive(Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Token {
     OpenCurly,
     CloseCurly,
+
     Equals,
     Comma,
+
+    Plus,
+    Divide,
+    Multiply,
+    
     Projection,
     Selection,
     Join,
     Union,
     Intersection,
-    Subtraction,
+    Minus,
+
     Symbol(String),
     String(String),
     Number(String),
+
+    EOF,
 }
 
 pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
@@ -25,7 +34,10 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
             '}' => tokens.push(Token::CloseCurly),
             '=' => tokens.push(Token::Equals),
             ',' => tokens.push(Token::Comma),
-            '-' => tokens.push(Token::Subtraction),
+            '-' => tokens.push(Token::Minus),
+            '+' => tokens.push(Token::Plus),
+            '*' => tokens.push(Token::Multiply),
+            '/' => tokens.push(Token::Divide),
             '"' => {
                 let mut word: String = "".to_string();
 
@@ -33,6 +45,7 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
                     if c == '"' {break};
                     word.push(c);
                 }
+                // TODO: Add error checking for unterminated strings
 
                 tokens.push(Token::String(word));
             },
@@ -70,5 +83,8 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
         }
     }
 
+    // Done reading line
+    tokens.push(Token::EOF);
+    
     tokens
 }
