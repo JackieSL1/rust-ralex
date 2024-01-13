@@ -1,8 +1,11 @@
 mod tokenizer;
 mod parser;
+mod table;
 
 use std::io::{self, Write};
+use std::collections::HashMap;
 use crate::parser::Expr;
+use crate::table::Table;
 
 fn main() {
     // let test_string = r#"
@@ -18,7 +21,11 @@ fn main() {
 
     // println!("Input String:\n{}", test_string);
     // println!("{:?}", tokens);
+    //
     
+    let mut tables: HashMap<String, Table> = HashMap::new();
+    tables.insert("a".to_string(), Table::new(vec!["test".to_string()]));
+
     loop {
         print!("> ");
         io::stdout().flush().expect("error: unable to flush stdout");
@@ -35,7 +42,8 @@ fn main() {
         let tree = parser::parse(&tokens);
         println!("Tree: {tree:?}");
 
-        let result = tree.eval();
-        println!("Result: {result:?}");
+        tree.eval(&tables);
     }
+
+    //Table::new(vec!["1".to_string(), "2".to_string()]);
 }

@@ -2,6 +2,8 @@
 pub enum Token {
     OpenCurly,
     CloseCurly,
+    OpenParen,
+    CloseParen,
 
     Equals,
     Comma,
@@ -32,6 +34,8 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
         match c {
             '{' => tokens.push(Token::OpenCurly),
             '}' => tokens.push(Token::CloseCurly),
+            '(' => tokens.push(Token::OpenParen),
+            ')' => tokens.push(Token::CloseParen),
             '=' => tokens.push(Token::Equals),
             ',' => tokens.push(Token::Comma),
             '-' => tokens.push(Token::Minus),

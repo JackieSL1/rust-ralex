@@ -1,35 +1,55 @@
 use crate::tokenizer::Token;
-use std::{cell::RefCell, rc::Rc};
+use crate::table::Table;
 use std::slice::Iter;
 use std::iter::Peekable;
+use std::collections::HashMap;
+
+// struct parser {
+//     tables: HashMap<String, Table>
+// }
 
 #[derive (Debug)]
 pub enum Expr {
     Binary { left: Box<Expr>, operator: Token, right: Box<Expr>},
     Unary { operator: Token, right: Box<Expr> },
-    Literal(String),
+    Grouping(Box<Expr>),
+    Literal(Token),
 }
 
 impl Expr {
-    pub fn eval(&self) -> i32 {
+    pub fn eval(&self, tables: &HashMap<String, Table>) -> i32 {
        match self {
             Expr::Binary { left, operator, right } => {
                 match operator {
-                    Token::Plus => {left.eval() + right.eval()},
-                    Token::Minus => {left.eval() - right.eval()},
-                    Token::Multiply => {left.eval() * right.eval()},
-                    Token::Divide => {left.eval() / right.eval()},
+                    Token::Plus => {left.eval(&tables) + right.eval(&tables)},
+                    Token::Minus => {left.eval(&tables) - right.eval(&tables)},
+                    Token::Multiply => {left.eval(&tables) * right.eval(&tables)},
+                    Token::Divide => {left.eval(&tables) / right.eval(&tables)},
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
             Expr::Unary{ operator, right } => {
                 match operator {
-                    Token::Minus => {- right.eval()},
+                    Token::Minus => {- right.eval(&tables)},
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
-            Expr::Literal(string) => string.parse::<i32>().unwrap(),
-       }
+            Expr::Literal(token) => {
+                match token {
+                    Token::Number(num) => {
+                        println!("{}", num.parse::<i32>().unwrap());
+                        1
+                    },
+                    Token::Symbol(key) => {
+                        println!("Table {key}:");
+                        println!("{:?}", tables.get(key));
+                        0
+                    },
+                    _ => panic!("error: can't evaluate {token:?} Literal"),
+                }
+            },
+            Expr::Grouping(expr) => expr.eval(&tables),
+        }
     }
 }
 
@@ -85,7 +105,12 @@ fn unary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
 fn primary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> { 
     if let Some(token) = tokens.next() {
         match token {
-            Token::Number(num) => Box::new(Expr::Literal(num.to_string())),
+            Token::Number(_) | Token::Symbol(_) => Box::new(Expr::Literal(token.clone())),
+            Token::OpenParen => { 
+                let expr = term(tokens);
+                if tokens.next().unwrap() != &Token::CloseParen {panic!("error: expected ')' after expression")};
+                Box::new(Expr::Grouping(expr))
+            },
             token => panic!("error: unable to parse {:?}", token),
         }
     } else {
