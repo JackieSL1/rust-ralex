@@ -26,12 +26,16 @@ fn main() {
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("error: unable to read user input");
         let mut tokens: Vec<tokenizer::Token> = tokenizer::get_tokens(input.chars());
+        println!("Tokens: {tokens:?}");
         if tokens[0] == tokenizer::Token::EOF {
             break;
         }
         tokens.pop(); // Remove EOF
 
         let tree = parser::parse(&tokens);
-        println!("Tokens: {tokens:?}");
+        println!("Tree: {tree:?}");
+
+        let result = tree.eval();
+        println!("Result: {result:?}");
     }
 }

@@ -10,9 +10,31 @@ pub enum Expr {
     Literal(String),
 }
 
+impl Expr {
+    pub fn eval(&self) -> i32 {
+       match self {
+            Expr::Binary { left, operator, right } => {
+                match operator {
+                    Token::Plus => {left.eval() + right.eval()},
+                    Token::Minus => {left.eval() - right.eval()},
+                    Token::Multiply => {left.eval() * right.eval()},
+                    Token::Divide => {left.eval() / right.eval()},
+                    _ => panic!("error: can't evaluate {operator:?}"),
+                }
+            },
+            Expr::Unary{ operator, right } => {
+                match operator {
+                    Token::Minus => {- right.eval()},
+                    _ => panic!("error: can't evaluate {operator:?}"),
+                }
+            },
+            Expr::Literal(string) => string.parse::<i32>().unwrap(),
+       }
+    }
+}
+
 fn term(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> { 
     let mut expr = factor(tokens);
-    println!("expr = {expr:?}");
 
     while let Some(token) = tokens.peek() {
         match token {
@@ -24,7 +46,6 @@ fn term(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
             _ => break,
         }
     }
-    println!("DONE");
 
     expr
 }
@@ -44,7 +65,8 @@ fn factor(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
         }
     }
 
-    primary(tokens)}
+    expr
+}
 
 fn unary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> { 
     if let Some(token) = tokens.peek() {
@@ -54,16 +76,14 @@ fn unary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
                 let right = unary(tokens);
                 return Box::new(Expr::Unary {operator, right})
             },
-            _ => (),
+            _ => {},
         }
     }
-    println!("returning primary");
     primary(tokens)
 }
 
 fn primary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> { 
     if let Some(token) = tokens.next() {
-        println!("MATCH: {token:?}");
         match token {
             Token::Number(num) => Box::new(Expr::Literal(num.to_string())),
             token => panic!("error: unable to parse {:?}", token),
