@@ -18,7 +18,7 @@ pub enum Expr {
 
 impl Expr {
     pub fn eval(&self, tables: &HashMap<String, Table>) -> i32 {
-       match self {
+        match self {
             Expr::Binary { left, operator, right } => {
                 match operator {
                     Token::Plus => {left.eval(&tables) + right.eval(&tables)},
