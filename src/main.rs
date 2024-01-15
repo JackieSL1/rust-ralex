@@ -9,16 +9,12 @@ use crate::table::Table;
 
 
 fn process_table_tokens(tokens: Vec<Vec<Token>>) -> Result<Vec<Vec<Token>>, String> {
-    println!("Processing Tokens: {tokens:?}");
-
     let mut result: Vec<Vec<Token>> = Vec::new();
     let mut tokens = tokens.iter()
         .flatten()
         .skip_while( |token| **token != Token::OpenCurly )
-        //.skip(10)
         .peekable();
 
-    println!("Current tokens {:?}", tokens);
     let mut row: Vec<Token> = Vec::new();
     while let Some(token) = tokens.next() {
         match token {
@@ -26,9 +22,7 @@ fn process_table_tokens(tokens: Vec<Vec<Token>>) -> Result<Vec<Vec<Token>>, Stri
             Token::Comma | Token::EOF | Token::OpenCurly => {},
             Token::Symbol(_) | Token::Number(_) | Token::String(_)=> {
                 row.push(token.clone());
-                println!("Current token {:?}", token);
                 if *tokens.peek().unwrap() != &Token::Comma {
-                    println!("pushing {:?}", row);
                     result.push(row.clone());
                     row.clear();
                 }
@@ -152,11 +146,16 @@ fn main() {
             tokens.pop(); // Remove EOF
 
             let tree = parser::parse(&tokens);
-            println!("Tree: {tree:?}");
 
-            tree.eval(&tables);
+            let result = tree.eval(&tables);
+            match result {
+                Some(table) => println!("{table}"),
+                None => println!("No table found"),
+            };
         }
     }
 
     //Table::new(vec!["1".to_string(), "2".to_string()]);
 }
+
+
