@@ -41,8 +41,10 @@ impl Expr {
                         1
                     },
                     Token::Symbol(key) => {
-                        println!("Table {key}:");
-                        println!("{:?}", tables.get(key));
+                        match tables.get(key) {
+                            Some(table) => println!("{table}"),
+                            None => println!("No table with name {key}"),
+                        };
                         0
                     },
                     _ => panic!("error: can't evaluate {token:?} Literal"),

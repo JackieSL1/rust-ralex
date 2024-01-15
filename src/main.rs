@@ -11,20 +11,19 @@ use crate::table::Table;
 fn process_table_tokens(tokens: Vec<Vec<Token>>) -> Result<Vec<Vec<Token>>, String> {
     println!("Processing Tokens: {tokens:?}");
 
-    let table_name = tokens[0][0].clone();
-    let mut result: Vec<Vec<Token>> = vec![vec![table_name]];
+    let mut result: Vec<Vec<Token>> = Vec::new();
     let mut tokens = tokens.iter()
         .flatten()
-        .skip_while( |token| {*token != &Token::OpenCurly} )
-        .skip(1)
+        .skip_while( |token| **token != Token::OpenCurly )
+        //.skip(10)
         .peekable();
 
     println!("Current tokens {:?}", tokens);
+    let mut row: Vec<Token> = Vec::new();
     while let Some(token) = tokens.next() {
-        let mut row: Vec<Token> = Vec::new();
         match token {
             Token::CloseCurly => {return Ok(result);},
-            Token::Comma | Token::EOF => {},
+            Token::Comma | Token::EOF | Token::OpenCurly => {},
             Token::Symbol(_) | Token::Number(_) | Token::String(_)=> {
                 row.push(token.clone());
                 println!("Current token {:?}", token);
@@ -38,6 +37,29 @@ fn process_table_tokens(tokens: Vec<Vec<Token>>) -> Result<Vec<Vec<Token>>, Stri
         };
     }
     Ok(result)
+}
+
+fn build_table(mut tokens: Vec<Vec<Token>>) -> Table {
+    let mut table = Table { rows: Vec::new() };
+    let width = tokens[0].len();
+    for row in tokens.iter_mut() {
+        if row.len() != width {
+            panic!("error: all table rows must be same length");// TODO: shouldn't panic
+        }
+        table.rows.push(row.iter_mut()
+            .map( |token| {
+            match token {
+                Token::Symbol(string) | Token::Number(string) | Token::String(string) => string.clone(),
+                _ => panic!("error: unable to build row"),
+                }
+            })
+            .collect()
+        );
+    }
+
+    println!("Built new table: {table:?}");
+
+    table
 }
 
 fn main() {
@@ -86,6 +108,7 @@ fn main() {
             println!("Exiting... Have a nice day!");
             break;
         } else if tokens[1] == Token::Equals {
+            let Token::Symbol(table_name) = tokens[0].clone() else {break;};
             let mut table_tokens = vec![tokens.clone()];
 
             while tokens[0] != Token::EOF {
@@ -98,9 +121,12 @@ fn main() {
                 //println!("Tokens: {tokens:?}");
             }
 
-            let table_tokens = process_table_tokens(table_tokens);
+            let result = process_table_tokens(table_tokens);
+            match result {
+                Ok(toks) => {tables.insert(table_name.to_string(), build_table(toks));},
+                Err(msg) => {eprintln!("{msg}");},
+            };
 
-            println!("Table Tokens: {table_tokens:?}");
         } else {
             tokens.pop(); // Remove EOF
 

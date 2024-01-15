@@ -1,6 +1,8 @@
+use std::fmt::{Display, Formatter, Error};
+
 #[derive (Debug)]
 pub struct Table {
-    rows: Vec<Vec<String>>,
+    pub rows: Vec<Vec<String>>,
 }
 
 impl Table {
@@ -9,9 +11,21 @@ impl Table {
 
         Table { rows: vec![headers.clone()] }
     }
-   
-    // pub fn fmt(&self, f: &mut fmt:Formatter) -> fmt::Result {
-    //     
-    //
-    // }
+}
+
+impl Display for Table {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        let mut result = "".to_string();
+        self.rows.iter().for_each( |row| {
+            row.iter().for_each( |value| {
+                result.push_str(value.as_str());
+                result.push_str(", ");
+            });
+            result.pop();
+            result.pop();
+            result.push_str("\n");
+        });
+
+        write!(f, "{result}")
+    }
 }
