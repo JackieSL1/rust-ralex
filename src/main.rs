@@ -40,17 +40,38 @@ fn process_table_tokens(tokens: Vec<Vec<Token>>) -> Result<Vec<Vec<Token>>, Stri
 }
 
 fn build_table(mut tokens: Vec<Vec<Token>>) -> Table {
-    let mut table = Table { rows: Vec::new() };
+    if tokens.len() < 2 {
+        panic!("error: table must have at least 2 rows"); 
+    }
+    let mut table = Table { 
+        rows: Vec::new(),
+        types: tokens[1].iter_mut().map( |token| {
+            match token {
+               Token::Number(_) => "Integer".to_string(),
+               Token::String(_) => "String".to_string(),
+               _ => panic!("error: unable to identify table types"),
+            }
+            }).collect::<Vec<String>>(),
+    };
     let width = tokens[0].len();
     for row in tokens.iter_mut() {
         if row.len() != width {
             panic!("error: all table rows must be same length");// TODO: shouldn't panic
         }
         table.rows.push(row.iter_mut()
-            .map( |token| {
-            match token {
-                Token::Symbol(string) | Token::Number(string) | Token::String(string) => string.clone(),
-                _ => panic!("error: unable to build row"),
+            .enumerate().map( |(i, token)| {
+                println!("{i}: {:?}", table.types[i]);
+                match token {
+                    Token::Symbol(string) => string.clone(),
+                    Token::Number(string) => {
+                        if table.types[i] != "Integer" {panic!("error: cannot store non-Integer values in Integer coloumn")};
+                        string.clone()
+                    },
+                    Token::String(string) => {
+                        if table.types[i] != "String" {panic!("error: cannot store non-String values in String coloumn")};
+                        string.clone()
+                    },
+                    _ => panic!("error: unable to build row"),
                 }
             })
             .collect()

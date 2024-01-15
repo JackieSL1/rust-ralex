@@ -3,13 +3,16 @@ use std::fmt::{Display, Formatter, Error};
 #[derive (Debug)]
 pub struct Table {
     pub rows: Vec<Vec<String>>,
+    pub types: Vec<String>,
 }
 
 impl Table {
     pub fn new(headers: Vec<String>) -> Table {
         println!("{headers:?}");
 
-        Table { rows: vec![headers.clone()] }
+        Table { rows: vec![headers.clone()],
+            types: Vec::new(),
+        }
     }
 }
 
