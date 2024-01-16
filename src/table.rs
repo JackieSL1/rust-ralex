@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter, Error};
 
-#[derive (Debug)]
+#[derive (Debug, Clone)]
 pub struct Table {
     pub rows: Vec<Vec<String>>,
     pub types: Vec<String>,
@@ -13,6 +13,98 @@ impl Table {
         Table { rows: vec![headers.clone()],
             types: Vec::new(),
         }
+    }
+
+    pub fn union(&self, other: &Table) -> Result<Table, &'static str> {
+        if self.rows[0] != other.rows[0] {
+           return Err("error: tables must have same columns to union");
+        }
+
+        let mut result = self.clone();
+        for row in other.rows.iter().skip(1) {
+            if !result.rows.contains(row) {
+                result.rows.push(row.clone());
+            }
+        }
+        Ok(result)
+    }
+
+    pub fn minus(&self, other: &Table) -> Result<Table, &'static str> {
+        if self.rows[0] != other.rows[0] {
+           return Err("error: tables must have same columns to union");
+        }
+
+        let mut result = Table {
+            rows: vec![self.rows[0].clone()],
+            types: self.types.clone(),
+        };
+
+        for row in self.rows.iter().skip(1) {
+            if !other.rows.contains(row) {
+                result.rows.push(row.clone());
+            }
+        }
+        Ok(result)
+    }
+
+    pub fn intersect(&self, other: &Table) -> Result<Table, &'static str> {
+        if self.rows[0] != other.rows[0] {
+           return Err("error: tables must have same columns to intersect");
+        }
+
+        let mut result = Table {
+            rows: vec![self.rows[0].clone()],
+            types: self.types.clone(),
+        };
+
+        for self_row in self.rows.iter().skip(1) {
+            for other_row in other.rows.iter().skip(1) {
+                if self_row == other_row {
+                    result.rows.push(self_row.clone());
+                }
+            }
+        }
+
+        Ok(result)
+    }
+
+    pub fn multiply(&self, other: &Table) -> Result<Table, &'static str> {
+        let mut result = Table {
+            rows: vec![self.rows[0].clone()],
+            types: self.types.clone(),
+        };
+        result.types.extend(other.types.clone());
+        result.rows[0].extend(other.rows[0].clone());
+
+        for self_row in self.rows.iter().skip(1) {
+            for other_row in other.rows.iter().skip(1) {
+                let mut new_row = self_row.clone();
+                new_row.extend(other_row.clone());
+                result.rows.push(new_row);
+            }
+        }
+
+        Ok(result)
+    }
+
+    pub fn divide(&self, other: &Table) -> Result<Table, &'static str> {
+        todo!();
+        let mut result = Table {
+            rows: vec![self.rows[0].clone()],
+            types: self.types.clone(),
+        };
+        result.types.extend(other.types.clone());
+        result.rows[0].extend(other.rows[0].clone());
+
+        for self_row in self.rows.iter().skip(1) {
+            for other_row in other.rows.iter().skip(1) {
+                let mut new_row = self_row.clone();
+                new_row.extend(other_row.clone());
+                result.rows.push(new_row);
+            }
+        }
+
+        Ok(result)
     }
 }
 

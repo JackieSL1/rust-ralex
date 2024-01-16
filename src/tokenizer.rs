@@ -16,7 +16,7 @@ pub enum Token {
     Selection,
     Join,
     Union,
-    Intersection,
+    Intersect,
     Minus,
 
     Symbol(String),
@@ -67,7 +67,7 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
                     "project" => tokens.push(Token::Projection),
                     "select" => tokens.push(Token::Selection),
                     "join" => tokens.push(Token::Join),
-                    "intersect" => tokens.push(Token::Intersection),
+                    "intersect" => tokens.push(Token::Intersect),
                     "union" => tokens.push(Token::Union),
                     _ => tokens.push(Token::Symbol(word)),
                 }

@@ -17,14 +17,15 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn eval<'a>(&'a self, tables: &'a HashMap<String, Table>) -> Option<&Table> {
+    pub fn eval<'a>(&'a self, tables: &'a HashMap<String, Table>) -> Option<Table> {
         match self {
             Expr::Binary { left, operator, right } => {
                 match operator {
-                    // Token::Plus => {left.eval(&tables) + right.eval(&tables)},
-                    // Token::Minus => {left.eval(&tables) - right.eval(&tables)},
-                    // Token::Multiply => {left.eval(&tables) * right.eval(&tables)},
-                    // Token::Divide => {left.eval(&tables) / right.eval(&tables)},
+                    Token::Union => {Some(left.eval(&tables).unwrap().union(&right.eval(&tables).unwrap()).unwrap())},
+                    Token::Intersect => {Some(left.eval(&tables).unwrap().intersect(&right.eval(&tables).unwrap()).unwrap())},
+                    Token::Minus => {Some(left.eval(&tables).unwrap().minus(&right.eval(&tables).unwrap()).unwrap())},
+                    Token::Multiply => {Some(left.eval(&tables).unwrap().multiply(&right.eval(&tables).unwrap()).unwrap())},
+                    Token::Divide => {Some(left.eval(&tables).unwrap().divide(&right.eval(&tables).unwrap()).unwrap())},
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
@@ -36,11 +37,7 @@ impl Expr {
             },
             Expr::Literal(token) => {
                 match token {
-                    // Token::Number(num) => {
-                    //     println!("{}", num.parse::<i32>().unwrap());
-                    //     1
-                    // },
-                    Token::Symbol(key) => tables.get(key),
+                    Token::Symbol(key) => tables.get(key).cloned(),
                     _ => panic!("error: can't evaluate {token:?} Literal"),
                 }
             },
@@ -54,7 +51,7 @@ fn term(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
 
     while let Some(token) = tokens.peek() {
         match token {
-            Token::Plus | Token::Minus=> {
+            Token::Plus | Token::Minus | Token::Union | Token::Intersect => {
                 let operator = tokens.next().unwrap().clone();
                 let right = factor(tokens);
                 expr = Box::new(Expr::Binary {left: expr, operator, right}); 
