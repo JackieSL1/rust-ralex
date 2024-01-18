@@ -11,6 +11,10 @@ pub enum Token {
     Plus,
     Divide,
     Multiply,
+
+    And,
+    Or,
+    Not,
     
     Projection,
     Selection,
@@ -69,6 +73,9 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
                     "join" => tokens.push(Token::Join),
                     "intersect" => tokens.push(Token::Intersect),
                     "union" => tokens.push(Token::Union),
+                    "and" => tokens.push(Token::And),
+                    "or" => tokens.push(Token::Or),
+                    "not" => tokens.push(Token::Not),
                     _ => tokens.push(Token::Symbol(word)),
                 }
             },
