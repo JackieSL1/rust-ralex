@@ -1,17 +1,15 @@
 use crate::tokenizer::Token;
 use crate::table::Table;
+use crate::condition::{Condition, self};
 use std::slice::Iter;
 use std::iter::Peekable;
 use std::collections::HashMap;
-
-// struct parser {
-//     tables: HashMap<String, Table>
-// }
 
 #[derive (Debug)]
 pub enum Expr {
     Binary { left: Box<Expr>, operator: Token, right: Box<Expr>},
     Unary { operator: Token, right: Box<Expr> },
+    UnaryCond { operator: Token, condition: Box<Condition> ,right: Box<Expr> },
     Grouping(Box<Expr>),
     Literal(Token),
 }
@@ -29,9 +27,14 @@ impl Expr {
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
-            Expr::Unary{ operator, right } => {
+            Expr::Unary{ operator, .. } => {
                 match operator {
-                    // Token::Minus => {- right.eval(&tables)},
+                    _ => panic!("error: can't evaluate {operator:?}"),
+                }
+            },
+            Expr::UnaryCond{ operator, condition ,right } => {
+                match operator {
+                    Token::Select => {Some(right.eval(&tables).unwrap().select(&condition).unwrap())},
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
@@ -46,7 +49,7 @@ impl Expr {
     }
 }
 
-fn term(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> { 
+fn expr(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> { 
     let mut expr = factor(tokens);
 
     while let Some(token) = tokens.peek() {
@@ -89,6 +92,12 @@ fn unary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
                 let right = unary(tokens);
                 return Box::new(Expr::Unary {operator, right})
             },
+            Token::Select => {
+                let operator = tokens.next().unwrap().clone();
+                let condition = condition::parse(tokens);
+                let right = unary(tokens);
+                return Box::new(Expr::UnaryCond {operator, condition, right})
+            }
             _ => {},
         }
     }
@@ -100,7 +109,7 @@ fn primary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
         match token {
             Token::Number(_) | Token::Symbol(_) => Box::new(Expr::Literal(token.clone())),
             Token::OpenParen => { 
-                let expr = term(tokens);
+                let expr = expr(tokens);
                 if tokens.next().unwrap() != &Token::CloseParen {panic!("error: expected ')' after expression")};
                 Box::new(Expr::Grouping(expr))
             },
@@ -113,5 +122,5 @@ fn primary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
 
 pub fn parse(tokens: &Vec<Token>) -> Box<Expr> {
     let mut iter = tokens.iter().peekable();
-    term(&mut iter)
+    expr(&mut iter)
 }

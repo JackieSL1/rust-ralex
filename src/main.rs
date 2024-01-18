@@ -1,6 +1,7 @@
 mod tokenizer;
 mod parser;
 mod table;
+mod condition;
 
 use std::io::{self, Write};
 use std::collections::HashMap;

@@ -1,7 +1,6 @@
 #[derive(PartialEq, Debug, Clone)]
 pub enum Token {
-    OpenCurly,
-    CloseCurly,
+    OpenCurly, CloseCurly,
     OpenParen,
     CloseParen,
 
@@ -15,9 +14,12 @@ pub enum Token {
     And,
     Or,
     Not,
+
+    Greater,
+    Lesser,
     
-    Projection,
-    Selection,
+    Project,
+    Select,
     Join,
     Union,
     Intersect,
@@ -46,6 +48,8 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
             '+' => tokens.push(Token::Plus),
             '*' => tokens.push(Token::Multiply),
             '/' => tokens.push(Token::Divide),
+            '>' => tokens.push(Token::Greater),
+            '<' => tokens.push(Token::Lesser),
             '"' => {
                 let mut word: String = "".to_string();
 
@@ -68,8 +72,8 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
                 }
 
                 match word.as_str() {
-                    "project" => tokens.push(Token::Projection),
-                    "select" => tokens.push(Token::Selection),
+                    "project" => tokens.push(Token::Project),
+                    "select" => tokens.push(Token::Select),
                     "join" => tokens.push(Token::Join),
                     "intersect" => tokens.push(Token::Intersect),
                     "union" => tokens.push(Token::Union),

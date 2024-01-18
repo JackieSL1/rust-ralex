@@ -1,4 +1,7 @@
-use std::fmt::{Display, Formatter, Error};
+use std::{fmt::{Display, Formatter, Error}, collections::hash_map};
+use crate::{parser::Expr, condition::Condition};
+use std::collections::HashMap;
+use std::iter::zip;
 
 #[derive (Debug, Clone)]
 pub struct Table {
@@ -101,6 +104,25 @@ impl Table {
                 let mut new_row = self_row.clone();
                 new_row.extend(other_row.clone());
                 result.rows.push(new_row);
+            }
+        }
+
+        Ok(result)
+    }
+
+    pub fn select(&self, condition: &Box<Condition>) -> Result<Table, &'static str> {
+        let mut result = Table {
+            rows: vec![self.rows[0].clone()],
+            types: self.types.clone(),
+        };
+
+        for self_row in self.rows.iter().skip(1) {
+            let mut row_lookup = HashMap::new();
+            for (key, value) in zip(self.rows[0].clone(), self_row.clone()) {
+               row_lookup.insert(key, value); 
+            }
+            if condition.eval(&row_lookup).parse().unwrap() {
+                result.rows.push(self_row.clone());
             }
         }
 
