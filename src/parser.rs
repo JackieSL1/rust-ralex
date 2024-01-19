@@ -8,6 +8,7 @@ use std::collections::HashMap;
 #[derive (Debug)]
 pub enum Expr {
     Binary { left: Box<Expr>, operator: Token, right: Box<Expr>},
+    BinaryCond{ left: Box<Expr>, operator: Token, condition: Box<Condition>, right: Box<Expr> },
     Unary { operator: Token, right: Box<Expr> },
     UnaryCond { operator: Token, condition: Box<Condition> ,right: Box<Expr> },
     Grouping(Box<Expr>),
@@ -24,6 +25,12 @@ impl Expr {
                     Token::Minus => {Some(left.eval(&tables).unwrap().minus(&right.eval(&tables).unwrap()).unwrap())},
                     Token::Multiply => {Some(left.eval(&tables).unwrap().multiply(&right.eval(&tables).unwrap()).unwrap())},
                     Token::Divide => {Some(left.eval(&tables).unwrap().divide(&right.eval(&tables).unwrap()).unwrap())},
+                    _ => panic!("error: can't evaluate {operator:?}"),
+                }
+            },
+            Expr::BinaryCond { left, operator, condition ,right } => {
+                match operator {
+                    Token::Join => {Some(left.eval(&tables).unwrap().join(&condition, &right.eval(&tables).unwrap()).unwrap())},
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
@@ -97,7 +104,7 @@ fn unary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
                 let condition = condition::parse(tokens);
                 let right = unary(tokens);
                 return Box::new(Expr::UnaryCond {operator, condition, right})
-            }
+            },
             _ => {},
         }
     }
@@ -107,7 +114,7 @@ fn unary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
 fn primary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> { 
     if let Some(token) = tokens.next() {
         match token {
-            Token::Number(_) | Token::Symbol(_) => Box::new(Expr::Literal(token.clone())),
+            Token::Number(_) | Token::Symbol(_) | Token::String(_) => Box::new(Expr::Literal(token.clone())),
             Token::OpenParen => { 
                 let expr = expr(tokens);
                 if tokens.next().unwrap() != &Token::CloseParen {panic!("error: expected ')' after expression")};

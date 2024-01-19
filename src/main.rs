@@ -86,13 +86,7 @@ fn main() {
     //     "3", "Charlie", 21, "Mathematics"
     // }
     // "#;
-    // let test_string = "select id=a Students";
 
-    // let tokens: Vec<tokenizer::Token> = tokenizer::get_tokens(test_string.chars());
-
-    // println!("Input String:\n{}", test_string);
-    // println!("{:?}", tokens);
-    //
 
     let mut tables: HashMap<String, Table> = HashMap::new();
     tables.insert("a".to_string(), Table::new(vec!["test".to_string()]));

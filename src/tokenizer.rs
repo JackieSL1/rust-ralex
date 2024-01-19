@@ -16,7 +16,9 @@ pub enum Token {
     Not,
 
     Greater,
+    GreaterEq,
     Lesser,
+    LesserEq,
     
     Project,
     Select,
@@ -48,13 +50,42 @@ pub fn get_tokens(chars: std::str::Chars) -> Vec<Token> {
             '+' => tokens.push(Token::Plus),
             '*' => tokens.push(Token::Multiply),
             '/' => tokens.push(Token::Divide),
-            '>' => tokens.push(Token::Greater),
-            '<' => tokens.push(Token::Lesser),
+            '>' => {
+                if let Some(next) = chars.peek()  {
+                   if *next == '=' {
+                        chars.next();
+                        tokens.push(Token::GreaterEq);
+                        continue;
+                   }
+                } 
+                tokens.push(Token::Greater);
+            },
+            '<' => {
+                if let Some(next) = chars.peek()  {
+                   if *next == '=' {
+                        chars.next();
+                        tokens.push(Token::LesserEq);
+                        continue;
+                   }
+                } 
+                tokens.push(Token::Lesser);
+            },
             '"' => {
                 let mut word: String = "".to_string();
 
                 while let Some(c) = chars.next() {
                     if c == '"' {break};
+                    word.push(c);
+                }
+                // TODO: Add error checking for unterminated strings
+
+                tokens.push(Token::String(word));
+            },
+            '\'' => {
+                let mut word: String = "".to_string();
+
+                while let Some(c) = chars.next() {
+                    if c == '\'' {break};
                     word.push(c);
                 }
                 // TODO: Add error checking for unterminated strings

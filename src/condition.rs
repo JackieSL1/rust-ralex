@@ -17,11 +17,18 @@ impl Condition {
             Condition::Binary { left, operator, right } => {
                 match operator {
                     Token::Equals => {(left.eval(row_lookup) == right.eval(row_lookup)).to_string()},
+                    Token::Greater => {(left.eval(row_lookup) > right.eval(row_lookup)).to_string()},
+                    Token::GreaterEq => {(left.eval(row_lookup) >= right.eval(row_lookup)).to_string()},
+                    Token::Lesser => {(left.eval(row_lookup) < right.eval(row_lookup)).to_string()},
+                    Token::LesserEq => {(left.eval(row_lookup) <= right.eval(row_lookup)).to_string()},
+                    Token::And => {(left.eval(row_lookup).parse().unwrap() && right.eval(row_lookup).parse().unwrap()).to_string()},
+                    Token::Or => {(left.eval(row_lookup).parse().unwrap() || right.eval(row_lookup).parse().unwrap()).to_string()},
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
-            Condition::Unary{ operator, .. } => {
+            Condition::Unary{ operator, right } => {
                 match operator {
+                    Token::Not => {(!right.eval(row_lookup).parse::<bool>().unwrap()).to_string()},
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
@@ -38,13 +45,13 @@ impl Condition {
 }
 
 pub fn parse(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Condition> { 
-    let mut condition = factor(tokens);
+    let mut condition = comparison(tokens);
 
     while let Some(token) = tokens.peek() {
         match token {
-            Token::Greater | Token::Lesser | Token::Equals => {
+            Token::And | Token::Or => {
                 let operator = tokens.next().unwrap().clone();
-                let right = factor(tokens);
+                let right = comparison(tokens);
                 condition = Box::new(Condition::Binary {left: condition, operator, right}); 
             }
             _ => break,
@@ -54,12 +61,12 @@ pub fn parse(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Condition> {
     condition
 }
 
-fn factor(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Condition> { 
+fn comparison(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Condition> { 
     let mut condition = unary(tokens);
 
     while let Some(token) = tokens.peek() {
         match token {
-            Token::Multiply | Token::Divide | Token::And | Token::Or => {
+            Token::Greater | Token::GreaterEq | Token::Lesser | Token::LesserEq | Token::Equals => {
                 let operator = tokens.next().unwrap().clone();
                 let right = unary(tokens);
                 let new_cond = Condition::Binary { left: condition, operator, right};
@@ -89,7 +96,7 @@ fn unary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Condition> {
 fn primary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Condition> { 
     if let Some(token) = tokens.next() {
         match token {
-            Token::Number(_) | Token::Symbol(_) => Box::new(Condition::Literal(token.clone())),
+            Token::Number(_) | Token::Symbol(_) | Token::String(_) => Box::new(Condition::Literal(token.clone())),
             Token::OpenParen => { 
                 let expr = parse(tokens);
                 if tokens.next().unwrap() != &Token::CloseParen {panic!("error: expected ')' after expression")};

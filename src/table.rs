@@ -128,6 +128,10 @@ impl Table {
 
         Ok(result)
     }
+
+    pub fn join(&self, condition: &Box<Condition>, other: &Table) -> Result<Table, &'static str> {
+       self.multiply(other).unwrap().select(condition)
+    }
 }
 
 impl Display for Table {
