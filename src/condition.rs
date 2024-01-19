@@ -45,6 +45,7 @@ impl Condition {
 }
 
 pub fn parse(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Condition> { 
+    println!("{:?}", tokens);
     let mut condition = comparison(tokens);
 
     while let Some(token) = tokens.peek() {

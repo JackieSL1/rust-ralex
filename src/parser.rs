@@ -28,7 +28,9 @@ impl Expr {
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
-            Expr::BinaryCond { left, operator, condition ,right } => {
+            Expr::BinaryCond { left, operator, condition, right } => {
+                println!("MATCHING JOIN");
+                println!("{:?}, {:?}, {:?}, {:?}", left, operator, condition, right); 
                 match operator {
                     Token::Join => {Some(left.eval(&tables).unwrap().join(&condition, &right.eval(&tables).unwrap()).unwrap())},
                     _ => panic!("error: can't evaluate {operator:?}"),
@@ -83,6 +85,12 @@ fn factor(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
                 let right = unary(tokens);
                 let new_expr = Expr::Binary { left: expr, operator, right};
                 expr = Box::new(new_expr);
+            },
+            Token::Join => {
+                let operator = tokens.next().unwrap().clone();
+                let condition = condition::parse(tokens);
+                let right = unary(tokens);
+                expr = Box::new(Expr::BinaryCond { left: expr, operator, condition, right });
             }
             _ => break,
         }
