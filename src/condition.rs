@@ -23,6 +23,11 @@ impl Condition {
                     Token::LesserEq => {(left.eval(row_lookup) <= right.eval(row_lookup)).to_string()},
                     Token::And => {(left.eval(row_lookup).parse().unwrap() && right.eval(row_lookup).parse().unwrap()).to_string()},
                     Token::Or => {(left.eval(row_lookup).parse().unwrap() || right.eval(row_lookup).parse().unwrap()).to_string()},
+                    Token::Comma=> {
+                        let result = left.eval(row_lookup) + "," + &right.eval(row_lookup);
+                        println!("STRING: {result:?}");
+                        result
+                    },
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
@@ -67,7 +72,7 @@ fn comparison(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Condition> {
 
     while let Some(token) = tokens.peek() {
         match token {
-            Token::Greater | Token::GreaterEq | Token::Lesser | Token::LesserEq | Token::Equals => {
+            Token::Greater | Token::GreaterEq | Token::Lesser | Token::LesserEq | Token::Equals | Token::Comma => {
                 let operator = tokens.next().unwrap().clone();
                 let right = unary(tokens);
                 let new_cond = Condition::Binary { left: condition, operator, right};

@@ -1,5 +1,6 @@
-use std::{fmt::{Display, Formatter, Error}, collections::hash_map};
-use crate::{parser::Expr, condition::Condition};
+use std::fmt::{Display, Formatter, Error};
+use std::sync::RwLockWriteGuard;
+use crate::{condition::Condition, parser::List};
 use std::collections::HashMap;
 use std::iter::zip;
 
@@ -127,6 +128,40 @@ impl Table {
         }
 
         Ok(result)
+    }
+
+    pub fn project(&self, columns: List) -> Result<Table, &'static str> {
+        let mut result = self.clone();
+
+        for column in self.rows[0].iter() {
+            if !columns.contains(&column) { 
+                result = result.remove_column(column);
+            }
+        }
+
+
+        println!("Result: {:?}", result);
+        Ok(result)
+    }
+
+    fn remove_column(&self, column: &str) -> Table {
+        let index = self.rows[0].iter().position( |col| col == column).unwrap();
+        println!("Remove index: {index}");
+
+        let mut result = self.clone();
+        result.rows = result.rows
+            .into_iter().map(|row| {
+                row.into_iter()
+                    .enumerate()
+                    .filter( |&(i, _)| i != index)
+                    .map( |(_, elem)| elem)
+                    .collect::<Vec<String>>()
+            })
+            .collect();
+        result.types.remove(index);
+
+        println!("Result after removal: {:?}", result);
+        result 
     }
 
     pub fn join(&self, condition: &Box<Condition>, other: &Table) -> Result<Table, &'static str> {
