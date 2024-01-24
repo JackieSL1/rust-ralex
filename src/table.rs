@@ -35,8 +35,8 @@ impl Table {
     }
 
     pub fn minus(&self, other: &Table) -> Result<Table, &'static str> {
+        print!("MINUS: Left: {:?}, Right: {:?} ", self.rows, other.rows);
         if self.rows[0] != other.rows[0] {
-            println!("Minus: Left: {:?}, Right: {:?}", self.rows[0], other.rows[0]);
             return Err("error: tables must have same columns to minus");
         }
 
@@ -50,6 +50,7 @@ impl Table {
                 result.rows.push(row.clone());
             }
         }
+        println!("MINUS -> {:?}", result);
         Ok(result)
     }
 
@@ -75,7 +76,7 @@ impl Table {
     }
 
     pub fn multiply(&self, other: &Table) -> Result<Table, &'static str> {
-        println!("Multiply: Left: {:?}, Right: {:?}", self, other);
+        println!("MULTIPLY: Left: {:?}, Right: {:?}", self, other);
         let mut result = Table {
             rows: vec![self.rows[0].clone()],
             types: self.types.clone(),
@@ -91,27 +92,18 @@ impl Table {
             }
         }
 
+        println!("MULTIPLY -> {:?}", result);
         Ok(result)
     }
 
     pub fn divide(&self, other: &Table) -> Result<Table, &'static str> {
-        todo!();
-        let mut result = Table {
-            rows: vec![self.rows[0].clone()],
-            types: self.types.clone(),
-        };
-        result.types.extend(other.types.clone());
-        result.rows[0].extend(other.rows[0].clone());
+        let attributes: List = self.rows[0].clone().into_iter().filter( |elem| !other.rows[0].contains(elem)).collect();
+        let result = self.project(attributes.clone()).unwrap().multiply(other);
+        let result = result.unwrap().minus(self);
+        let result = result.unwrap().project(attributes.clone());
+        let result = self.project(attributes).unwrap().minus(&result.unwrap());
 
-        for self_row in self.rows.iter().skip(1) {
-            for other_row in other.rows.iter().skip(1) {
-                let mut new_row = self_row.clone();
-                new_row.extend(other_row.clone());
-                result.rows.push(new_row);
-            }
-        }
-
-        Ok(result)
+        result
     }
 
     pub fn select(&self, condition: &Box<Condition>) -> Result<Table, &'static str> {
@@ -139,16 +131,26 @@ impl Table {
     }
 
     pub fn project(&self, columns: List) -> Result<Table, &'static str> {
+        println!("PROJECT START");
         let mut result = self.clone();
+        let mut columns = columns.clone();
+            println!("Columns: {:?}", columns);
 
         for column in self.rows[0].iter() {
+            println!("Column: {:?}", column);
             if !columns.contains(&column) { 
                 result = result.remove_column(column);
+            } else {
+                if let Some(index) = columns.iter().position( |elem| elem == column) {
+                    println!("Removing: {:?}", columns.get(index));
+                    columns.remove(index);
+                }
             }
         }
 
+        result.rows = result.rows.into_iter().unique().collect();
 
-        println!("Result: {:?}", result);
+        println!("PROJECT -> {:?}", result);
         Ok(result)
     }
 
@@ -173,14 +175,15 @@ impl Table {
     }
 
     pub fn join(&self, condition: &Box<Condition>, other: &Table) -> Result<Table, &'static str> {
-        println!("Left: {:?}, Right: {:?}", self, other);
+        println!("Join: Left: {:?}, Right: {:?}", self, other);
        self.multiply(other).unwrap().select(condition)
     }
 
     pub fn left_join(&self, condition: &Box<Condition>, other: &Table) -> Result<Table, &'static str> {
-        let attributes: List = self.rows[0].clone();
+        let attributes: List = self.rows[0].clone().into_iter().collect();
+        println!("Attributes: {:?}", attributes);
         let mut null_row = Table {
-            rows: vec![other.rows[0].clone()],
+            rows: vec![other.rows[0].clone().into_iter().filter( |elem| !self.rows[0].contains(elem)).collect()],
             types: other.types.clone() 
         };
         null_row.rows.push(null_row.rows[0].clone().into_iter().map( |_| "Null".to_string()).collect());
@@ -191,9 +194,9 @@ impl Table {
     }
 
     pub fn right_join(&self, condition: &Box<Condition>, other: &Table) -> Result<Table, &'static str> {
-        let attributes: List = other.rows[0].clone();
+        let attributes: List = other.rows[0].clone().into_iter().collect();
         let mut null_row = Table {
-            rows: vec![self.rows[0].clone()],
+            rows: vec![self.rows[0].clone().into_iter().filter( |elem| !other.rows[0].contains(elem)).collect()],
             types: self.types.clone() 
         };
         null_row.rows.push(null_row.rows[0].clone().into_iter().map( |_| "Null".to_string()).collect());

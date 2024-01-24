@@ -120,7 +120,7 @@ fn unary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
                 let right = unary(tokens);
                 return Box::new(Expr::Unary {operator, right})
             },
-            Token::Select=> {
+Token::Select=> {
                 let operator = tokens.next().unwrap().clone();
                 let condition = condition::parse(tokens);
                 let right = unary(tokens);
