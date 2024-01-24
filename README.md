@@ -1,5 +1,5 @@
 ## What is rust-relax?
-rust-relax is a small command line relational algebra calculator written in Rust based off of (RelaX)[https://dbis-uibk.github.io/relax/landing]. Supported operations include:
+rust-relax is a small command line relational algebra calculator written in Rust based off of [RelaX](https://dbis-uibk.github.io/relax/landing). Supported operations include:
 * Table creation
 * Selection (select)
 * Projection (project)
