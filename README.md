@@ -24,3 +24,40 @@ Make sure you have Rust & Cargo installed. From inside rust-relax, run the proje
 $ cd rust-relax
 $ cargo run
 ```
+This will open up the prompt. Create a new table like this
+```
+> Employees = { id, name, salary
+        1, "Dave", 1000
+        2, "Gary", 2000
+        3, "Mary", 1500
+        }
+```
+And view the table by typing its name
+```
+> Employees
+id, name, salary
+1, Dave, 1000
+2, Gary, 2000
+3, Mary, 1500
+```
+Then, try out some operations on it
+```
+> project name Employees
+name
+Dave
+Gary
+Mary
+
+> select salary > 1000 and salary < 2000 Employees
+id, name, salary
+3, Mary, 1500
+
+> project name (select salary > 1500 Employees)
+name
+Gary
+
+> quit
+Exiting... Have a nice day!
+```
+
+Have fun!
