@@ -8,6 +8,7 @@ rust-relax is a small command line relational algebra calculator written in Rust
 * Right outer join (rightJoin)
 * Full outer join (fullJoin)
 * Set Union (union)
+* Set Intersection (intersect)
 * Set Compliement (-)
 * Set Division (/)
 * Cartesian Product (*)
