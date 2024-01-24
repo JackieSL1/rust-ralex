@@ -25,7 +25,6 @@ impl Condition {
                     Token::Or => {(left.eval(row_lookup).parse().unwrap() || right.eval(row_lookup).parse().unwrap()).to_string()},
                     Token::Comma=> {
                         let result = left.eval(row_lookup) + "," + &right.eval(row_lookup);
-                        println!("STRING: {result:?}");
                         result
                     },
                     _ => panic!("error: can't evaluate {operator:?}"),
@@ -50,7 +49,6 @@ impl Condition {
 }
 
 pub fn parse(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Condition> { 
-    println!("{:?}", tokens);
     let mut condition = comparison(tokens);
 
     while let Some(token) = tokens.peek() {

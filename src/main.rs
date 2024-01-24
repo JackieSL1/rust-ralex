@@ -55,7 +55,6 @@ fn build_table(mut tokens: Vec<Vec<Token>>) -> Table {
         }
         table.rows.push(row.iter_mut()
             .enumerate().map( |(i, token)| {
-                println!("{i}: {:?}", table.types[i]);
                 match token {
                     Token::Symbol(string) => string.clone(),
                     Token::Number(string) => {

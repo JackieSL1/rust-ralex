@@ -33,8 +33,6 @@ impl Expr {
                 }
             },
             Expr::BinaryCond { left, operator, condition, right } => {
-                println!("MATCHING JOIN");
-                println!("{:?}, {:?}, {:?}, {:?}", left, operator, condition, right); 
                 match operator {
                     Token::Join => {Some(left.eval(&tables).unwrap().join(&condition, &right.eval(&tables).unwrap()).unwrap())},
                     Token::LeftJoin => {Some(left.eval(&tables).unwrap().left_join(&condition, &right.eval(&tables).unwrap()).unwrap())},
@@ -155,7 +153,6 @@ fn primary(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
 }
 
 fn list(tokens: &mut Peekable<Iter<'_, Token>>) -> List { 
-    println!("in list");
     let mut result: Vec<String> = Vec::new();
     let Token::Symbol(string) = tokens.next().unwrap() else {
         panic!("error: list expected");

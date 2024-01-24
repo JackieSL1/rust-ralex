@@ -12,8 +12,6 @@ pub struct Table {
 
 impl Table {
     pub fn new(headers: Vec<String>) -> Table {
-        println!("{headers:?}");
-
         Table { rows: vec![headers.clone()],
             types: Vec::new(),
         }
@@ -21,7 +19,6 @@ impl Table {
 
     pub fn union(&self, other: &Table) -> Result<Table, &'static str> {
         if self.rows[0] != other.rows[0] {
-            println!("Left: {:?}, Right: {:?}", self.rows[0], other.rows[0]);
             return Err("error: tables must have same columns to union");
         }
 
@@ -35,7 +32,6 @@ impl Table {
     }
 
     pub fn minus(&self, other: &Table) -> Result<Table, &'static str> {
-        print!("MINUS: Left: {:?}, Right: {:?} ", self.rows, other.rows);
         if self.rows[0] != other.rows[0] {
             return Err("error: tables must have same columns to minus");
         }
@@ -50,7 +46,6 @@ impl Table {
                 result.rows.push(row.clone());
             }
         }
-        println!("MINUS -> {:?}", result);
         Ok(result)
     }
 
@@ -76,7 +71,6 @@ impl Table {
     }
 
     pub fn multiply(&self, other: &Table) -> Result<Table, &'static str> {
-        println!("MULTIPLY: Left: {:?}, Right: {:?}", self, other);
         let mut result = Table {
             rows: vec![self.rows[0].clone()],
             types: self.types.clone(),
@@ -92,7 +86,6 @@ impl Table {
             }
         }
 
-        println!("MULTIPLY -> {:?}", result);
         Ok(result)
     }
 
@@ -131,18 +124,14 @@ impl Table {
     }
 
     pub fn project(&self, columns: List) -> Result<Table, &'static str> {
-        println!("PROJECT START");
         let mut result = self.clone();
         let mut columns = columns.clone();
-            println!("Columns: {:?}", columns);
 
         for column in self.rows[0].iter() {
-            println!("Column: {:?}", column);
             if !columns.contains(&column) { 
                 result = result.remove_column(column);
             } else {
                 if let Some(index) = columns.iter().position( |elem| elem == column) {
-                    println!("Removing: {:?}", columns.get(index));
                     columns.remove(index);
                 }
             }
@@ -150,13 +139,11 @@ impl Table {
 
         result.rows = result.rows.into_iter().unique().collect();
 
-        println!("PROJECT -> {:?}", result);
         Ok(result)
     }
 
     fn remove_column(&self, column: &str) -> Table {
         let index = self.rows[0].iter().position( |col| col == column).unwrap();
-        println!("Remove index: {index}");
 
         let mut result = self.clone();
         result.rows = result.rows
@@ -170,24 +157,20 @@ impl Table {
             .collect();
         result.types.remove(index);
 
-        println!("Result after removal: {:?}", result);
         result 
     }
 
     pub fn join(&self, condition: &Box<Condition>, other: &Table) -> Result<Table, &'static str> {
-        println!("Join: Left: {:?}, Right: {:?}", self, other);
        self.multiply(other).unwrap().select(condition)
     }
 
     pub fn left_join(&self, condition: &Box<Condition>, other: &Table) -> Result<Table, &'static str> {
         let attributes: List = self.rows[0].clone().into_iter().collect();
-        println!("Attributes: {:?}", attributes);
         let mut null_row = Table {
             rows: vec![other.rows[0].clone().into_iter().filter( |elem| !self.rows[0].contains(elem)).collect()],
             types: other.types.clone() 
         };
         null_row.rows.push(null_row.rows[0].clone().into_iter().map( |_| "Null".to_string()).collect());
-        println!("Null Row: {:?}", null_row);
         self.join(condition, other).unwrap()
             .union(&self.minus(&self.join(condition, other).unwrap().project(attributes).unwrap()).unwrap()
             .multiply(&null_row).unwrap())
@@ -200,7 +183,6 @@ impl Table {
             types: self.types.clone() 
         };
         null_row.rows.push(null_row.rows[0].clone().into_iter().map( |_| "Null".to_string()).collect());
-        println!("Null Row: {:?}", null_row);
         self.join(condition, other).unwrap()
             .union(&null_row
             .multiply(&other.minus(&self.join(condition, other).unwrap().project(attributes).unwrap()).unwrap()).unwrap())
