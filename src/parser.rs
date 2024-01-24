@@ -37,6 +37,9 @@ impl Expr {
                 println!("{:?}, {:?}, {:?}, {:?}", left, operator, condition, right); 
                 match operator {
                     Token::Join => {Some(left.eval(&tables).unwrap().join(&condition, &right.eval(&tables).unwrap()).unwrap())},
+                    Token::LeftJoin => {Some(left.eval(&tables).unwrap().left_join(&condition, &right.eval(&tables).unwrap()).unwrap())},
+                    Token::RightJoin => {Some(left.eval(&tables).unwrap().right_join(&condition, &right.eval(&tables).unwrap()).unwrap())},
+                    Token::FullJoin => {Some(left.eval(&tables).unwrap().full_join(&condition, &right.eval(&tables).unwrap()).unwrap())},
                     _ => panic!("error: can't evaluate {operator:?}"),
                 }
             },
@@ -96,7 +99,7 @@ fn factor(tokens: &mut Peekable<Iter<'_, Token>>) -> Box<Expr> {
                 let new_expr = Expr::Binary { left: expr, operator, right};
                 expr = Box::new(new_expr);
             },
-            Token::Join => {
+            Token::Join | Token::LeftJoin | Token::RightJoin | Token::FullJoin => {
                 let operator = tokens.next().unwrap().clone();
                 let condition = condition::parse(tokens);
                 let right = unary(tokens);
